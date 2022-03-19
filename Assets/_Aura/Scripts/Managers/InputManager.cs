@@ -4,12 +4,12 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class InputManager : MonoBehaviour
+public class InputManager : MonoBehaviour, IInputManager
 {
     public LayerMask mouseInputLayerMask;
 
     public Action<Vector3> OnMouseClickEvent;
-    
+
 
     private void Update()
     {
@@ -29,7 +29,7 @@ public class InputManager : MonoBehaviour
 
                 //publish event to listeners
                 OnMouseClickEvent?.Invoke(position);
-     
+
             }
         }
 

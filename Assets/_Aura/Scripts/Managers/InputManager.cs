@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -6,8 +7,9 @@ using UnityEngine.EventSystems;
 public class InputManager : MonoBehaviour
 {
     public LayerMask mouseInputLayerMask;
-    public GameObject testBuildingPrefab;
-    private const int CELLSIZE = 3;
+
+    public Action<Vector3> OnMouseClickEvent;
+    
 
     private void Update()
     {
@@ -24,22 +26,27 @@ public class InputManager : MonoBehaviour
             if (Physics.Raycast(ray, out hitInfo, Mathf.Infinity, mouseInputLayerMask))
             {
                 var position = hitInfo.point - transform.position;
-                CreateBuildingOnGrid(CalculateGridPosition(position));     
+
+                //publish event to listeners
+                OnMouseClickEvent?.Invoke(position);
+     
             }
         }
 
     }
 
-    private void CreateBuildingOnGrid(Vector3 mouseHitPos)
+    //Subscription method to allow other classes to register to the event
+    public void SubscribeToOnMouseClick(Action<Vector3> listener)
     {
-        Instantiate(testBuildingPrefab, mouseHitPos, Quaternion.identity);
+        OnMouseClickEvent += listener;
     }
 
-    Vector3 CalculateGridPosition(Vector3 mouseHitPos)
+    public void UnSubscribeToOnMouseClick(Action<Vector3> listener)
     {
-        var xPos = (float)Mathf.FloorToInt(mouseHitPos.x/CELLSIZE);
-        var zPos = (float)Mathf.FloorToInt(mouseHitPos.z/CELLSIZE);
-
-        return new Vector3(xPos*CELLSIZE,0f, zPos * CELLSIZE);
+        OnMouseClickEvent -= listener;
     }
+
+
+
+
 }

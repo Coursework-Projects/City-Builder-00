@@ -10,13 +10,31 @@ public class InputManager : MonoBehaviour, IInputManager
 
     public Action<Vector3> OnMouseClickEvent;
 
+    //delegates to handle rightMouseButtonDown and Up inputs for camera panning
+    public Action<Vector3> OnRightMouseDown;
+    public Action OnRightMouseUp;
+
 
     private void Update()
     {
-        GetMouseInput();
+        GetLeftMousePositionInput();
+        GetRightMousePanningInput();
     }
 
-    void GetMouseInput()
+    private void GetRightMousePanningInput()
+    {
+        if (Input.GetMouseButton(1))
+        {
+            //handle right mouse down input
+            OnRightMouseDown?.Invoke(Input.mousePosition);
+        }
+        else if (Input.GetMouseButtonUp(1))
+        {
+            OnRightMouseUp?.Invoke();
+        }
+    }
+
+    void GetLeftMousePositionInput()
     {
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())
         {
@@ -31,7 +49,10 @@ public class InputManager : MonoBehaviour, IInputManager
                 OnMouseClickEvent?.Invoke(position);
 
             }
+
         }
+
+        
 
     }
 
@@ -47,6 +68,26 @@ public class InputManager : MonoBehaviour, IInputManager
     }
 
 
+    public void SubscribeToOnRightMouseDown(Action<Vector3> listener)
+    {
+        OnRightMouseDown += listener;
+    }
+
+    public void UnSubscribeToOnRightMouseDown(Action<Vector3> listener)
+    {
+        OnRightMouseDown -= listener;
+    }
+
+
+    public void SubscribeToOnRightMouseUp(Action listener)
+    {
+        OnRightMouseUp += listener;
+    }
+
+    public void UnSubscribeToOnRightMouseUp(Action listener)
+    {
+        OnRightMouseUp -= listener;
+    }
 
 
 }

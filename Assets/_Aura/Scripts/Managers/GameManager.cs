@@ -8,6 +8,7 @@ public class GameManager : MonoBehaviour
     public IInputManager inputManager;
     public PlacementManager placementManager;
     public UIController controller;
+    public CameraMovement cameraMovement;
 
     [SerializeField] private int cellSize = 3;
     [SerializeField] private int gridLength;
@@ -19,6 +20,7 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        cameraMovement.SetCameraLimits(0,gridWidth,0,gridLength);
         inputManager = FindObjectsOfType<MonoBehaviour>().OfType<IInputManager>().FirstOrDefault();
         controller.SubscribeToOnBuildArea(StartBuildMode);
         controller.SubscribeToOnCancelBuildArea(ActivateCancelMode);
@@ -26,15 +28,30 @@ public class GameManager : MonoBehaviour
 
         //subscribe to inputManager event to listen out for mouse click events
         inputManager.SubscribeToOnMouseClick(HandleMouseInput);
+        inputManager.SubscribeToOnRightMouseDown(HandleOnRightMouseDownPanning);
+        inputManager.SubscribeToOnRightMouseUp(HandleOnRightMouseUpStopPanning);
     }
 
     void HandleMouseInput(Vector3 mouseClickPosition)
     {
         var gridPos = gridStructure.CalculateGridPosition(mouseClickPosition);
-        if (flagIsBuildActionActive &&  gridStructure.IsCellTaken(gridPos) == false)
+        if (flagIsBuildActionActive && gridStructure.IsCellTaken(gridPos) == false)
         {
-            placementManager.CreateBuildingOnGrid(gridPos,gridStructure);
+            placementManager.CreateBuildingOnGrid(gridPos, gridStructure);
         }
+    }
+
+    void HandleOnRightMouseDownPanning(Vector3 panToPosition)
+    {
+        if (flagIsBuildActionActive == false)//only pan around in selection mode
+        {
+            cameraMovement.MoveCamera(panToPosition);
+        }
+    }
+
+    void HandleOnRightMouseUpStopPanning()
+    {
+        cameraMovement.StopCameraMovement();
     }
 
     void StartBuildMode()
@@ -44,11 +61,13 @@ public class GameManager : MonoBehaviour
 
     void ActivateCancelMode()
     {
-        flagIsBuildActionActive=false;
+        flagIsBuildActionActive = false;
     }
 
     private void OnDisable()
     {
         inputManager.UnSubscribeToOnMouseClick(HandleMouseInput);
+        inputManager.UnSubscribeToOnRightMouseDown(HandleOnRightMouseDownPanning);
+        inputManager.UnSubscribeToOnRightMouseUp(HandleOnRightMouseUpStopPanning);
     }
 }
